@@ -1,4 +1,19 @@
-#include "cholesky.cpp"
+// #include <iostream>
+// #include <cmath> 
+// #include <armadillo> 
+// /*
+// .is_trimatu / .is_trimatl	 	check whether matrix is upper/lower triangular
+// .is_diagmat	 	check whether matrix is diagonal
+// .is_square	 	check whether matrix is square sized
+// .is_symmetric	 	check whether matrix is symmetric
+// .is_hermitian	 	check whether matrix is hermitian
+// .is_sympd	 	check whether matrix is symmetric/hermitian positive definite
+// */
+
+#include <iostream>
+#include <cmath> 
+#include <armadillo> 
+#include <stdexcept>
 /*
 .is_trimatu / .is_trimatl	 	check whether matrix is upper/lower triangular
 .is_diagmat	 	check whether matrix is diagonal
@@ -8,11 +23,20 @@
 .is_sympd	 	check whether matrix is symmetric/hermitian positive definite
 */
 
-int find_pivot(const mat& A, int start) {
-    int n = A.n_rows();
+/**
+ * Find the pivot in the column A from the given starting index. 
+ *
+ * Look down a column to find the maximum value. 
+ *
+ * @param A: matrix A (matrix to be decomposed)
+ * @return pivot row: row index of the maximum value in the start column to be used as the pivot. 
+ */
+int find_pivot(const arma::mat& A, int start) {
+    int n = A.n_rows;
     int pivot_row = start; 
     double max_val = std::abs(A(start, start)); 
     // find the max val 
+    // compute elements below the idagonal 
     for (int i=start+1; i<n ; i++) {
         if (std::abs(A(i,start)) > max_val) {
             max_val = std::abs(A(i, start));
@@ -34,79 +58,154 @@ pivoted:
 
 L is lower triangular
 */
-bool cholesky(const arma::mat & A, arma::mat& L, bool pivot) {
-    int n = A.n_rows();
-    L.zeros(); 
-    arma::uvec p(n); 
-    for (int i=0; i<n; i++) {
-        for (int j=0; j<=i; j++) {
-            double sum=0.0; 
-            for (int k=0; k<j; k++) {
-                sum += L(i, k)*L(j,k);
+/* Following accuracy and stability of numerical algorithms 
+for j=1:n // cols 
+    for i=1:j-1  // rows 
+        rij = (aij - sum from k=1 to i-1[rki*rkj])/rii
+    rjj = (ajj - sum from k=1 to j-1[rkj^2])^1/2 
+*/
+std::pair<arma::mat, arma::mat> cholesky(arma::mat& A) {
+    if (!A.is_symmetric() || !A.is_sympd()) {
+        throw std::invalid_argument("Input matrix is not symmetric/positive definite."); 
+    }
+    int n =A.n_rows; 
+    arma::mat L(n,n);
+    L.zeros();
+    arma::uvec p(n);
+    for (int j=0; j<n; j++) {
+        for (int i = 0; i<=j; i++) {
+            double sum = 0.0;
 
-                if (i==j) { 
-                    // check for positive definiteness 
-                    if (A(i,i) - sum <= 0) {return false; }
-                    L(i, j) = std::sqrt(A(i,i) - sum);
-                }
-                else {
-                    if (L(j,j) == 0) {return false;}
-                    L(i, j) = (1.0 /L(j, j))*(A(i, j) - sum);
-                }
+            for (int k = 0; k<i; k++) {
+                sum += L(i,k) * L(j, k);
+            }
+
+            if (i == j) {
+                L(i,j) = std::sqrt(A(i,j)-sum);
+            } 
+            else {
+                L(j,i) = (A(j,i) - sum)/L(i,i);
             }
         }
     }
-    return true;
-
+    
+     
+    // arma::mat Lt = L.t();  // upper triangular 
+    arma::mat Lt = arma::trans(L);
+    // tolerance?
+    arma::mat reconstructed = L*Lt;
+    if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
+        std::cout << "Cholesky successful." << std::endl; 
+        
+    }
+    else {
+        std::cout << "Cholesky failed." << std::endl;
+    }
+    
+    return {L,Lt};
+    
 }
 
 
-bool pivoted_cholesky(const mat& A, mat& L) {
-    int n = A.n_rows();
-    L.arma::zeros(); 
-    arma::uvec p(n);
-    p.arma::zeros(); 
+std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
+    if (!A.is_symmetric() || !A.is_sympd()) {
+        throw std::invalid_argument("Input matrix is not symmetric/positive definite."); 
+    }
+    int n = A.n_rows;
+    arma::mat L(n,n);
+    L.zeros();
+    arma::mat P(n,n, arma::fill::eye); 
+    int pivot_row; 
+    
 
-    for (int i=0; i<n; i++) {
-        int pivot_row = find_pivot(A,i); 
-        if (pivot_row != i) {
-            // swap rows i, pivot row of A 
-            // swap i, pivot rows of L 
-            p(i) = pivot_row;
+    for (int j=0; j<n; j++) {
+        if (pivot) {
+            pivot_row = find_pivot(A, j); 
 
         }
-
-        for (int j=i; j<n; j++) {
-            double sum=0.0; 
-            for (int k=0; k<i; k++) {
-                sum += L(j,k)*L(i, k);
-
-                if (i==j) {
-                    // check for positive definiteness 
-                    if (A(i,i) - sum <= 0) {return false; }
-                    L(i,i) = std::sqrt(A(i,i) - sum);
-                }
-                else {
-                    if (L(j,j) == 0) {return false;} // zero division
-                    L(j,i) = (1.0 / L(j,j)) * (A(j,i) - sum);
-
-                }
+        else {pivot_row = j; }
+        if (pivot_row != j) {
+            // use arma::swap rows 
+            A.swap_rows(pivot_row, j);
+            P.swap_rows(pivot_row, j);
+            // p(j) = pivot_row;
+        }
+        for (int i = 0; i<=j; i++) {
+            double sum = 0.0;
             
-                
-                // double diagonal = L(j,j); 
-                // for (int k=i+1; k<n; k++) {
-                //     L(k,i) /= digonal;
-                // }
-                
-                // L(i, j) = (1.0 /L(j, j))*(A(i, j) - sum);
-            
+    
+            for (int k = 0; k<i; k++) {
+                sum += L(i,k) * L(j, k);
+            }
+
+            if (i == j) {
+                L(i,j) = std::sqrt(A(i,j)-sum);
+            } 
+            else {
+                L(j,i) = (A(j,i) - sum)/L(i,i);
             }
         }
-
-    return true;
     }
-
-
+    arma::mat Lt = arma::trans(L);
+    arma::mat reconstructed = L*Lt;
+    if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
+        std::cout << "Cholesky successful." << std::endl; 
         
+    }
+    else {
+        std::cout << "Cholesky failed." << std::endl;
+    }
+    
+    return {L,Lt};
+
+}
+
+std::pair<arma::mat, arma::mat> full_pivoted_cholesky(arma::mat& A) {
+    if (!A.is_symmetric() || !A.is_sympd()) {
+        throw std::invalid_argument("Input matrix is not symmetric/positive definite."); 
+    }
+    int n = A.n_rows;
+    arma::mat L(n,n);
+    L.zeros();
+    arma::mat P(n,n, arma::fill::eye); 
+    arma::mat Pt(n,n, arma::fill::eye); 
+
+    for (int j = 0; j < n; j++) {
+        auto max_it = std::max_element(A.begin_col(j) + j, A.end_col(j));
+        int pivot_row = std::distance(A.begin_col(j), max_it);
+        int pivot_col = j + std::distance(A.begin_col(j) + j, max_it);
         
+
+        A.swap_rows(j, pivot_row);
+        A.swap_cols(j, pivot_col);
+        P.swap_rows(j, pivot_row);
+        Pt.swap_cols(j, pivot_col);
+
+        for (int i = 0; i<=j; i++) {
+            double sum = 0.0;
+            
+    
+            for (int k = 0; k<i; k++) {
+                sum += L(i,k) * L(j, k);
+            }
+
+            if (i == j) {
+                L(i,j) = std::sqrt(A(i,j)-sum);
+            } 
+            else {
+                L(j,i) = (A(j,i) - sum)/L(i,i);
+            }
+        }
+    }
+    arma::mat Lt = arma::trans(L);
+    arma::mat reconstructed = L*Lt;
+    if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
+        std::cout << "Cholesky successful." << std::endl; 
+        
+    }
+    else {
+        std::cout << "Cholesky failed." << std::endl;
+    }
+    
+    return {L,Lt};
 }
