@@ -23,25 +23,38 @@
  */
 int find_pivot(const arma::mat& A, int start) {
     int n = A.n_rows;
-    int pivot_row = start; 
-    std::cout << "Starting from row" << start<<std::endl;
+    int pivot_col = start; 
+    std::cout << "Starting from col " << start<<std::endl;
     // goes through rows below current row, starts with column index start
-    // double max_val = std::abs(A(start, start)); // diagonal
     double max_val = A(start, start);
     // find the max val 
     // compute elements below the idagonal rows below start
-    // compare values in the column below start (exclude diagonal)
     for (int i=start+1; i<n ; i++) {
-        if (A(i,start) > max_val) {
-            max_val = A(i, start);
-            pivot_row = i; 
+        double diagonal = A(i,i);
+        if (diagonal > max_val) {
+            max_val = diagonal;
+            pivot_col = i; 
 
         }
         
     }
+     
     std::cout << "max val: "<< max_val << std::endl;
-    return pivot_row;
+    std::cout << "pivot col: " << pivot_col << std::endl;
+    return pivot_col;
 
+}
+void permute_cols(arma::mat & A,int j, int pivot_col) {
+
+    if (j < 0 || j >= A.n_cols ||pivot_col < 0 ||pivot_col >= A.n_cols) {
+        throw std::invalid_argument("Column indices are out of bounds.");
+    }
+    
+    for (int i = 0; i < A.n_rows; ++i) {
+        double temp = A(i, j);
+        A(i,j) = A(i,pivot_col);
+        A(i,j) = temp;
+    }
 }
 
 /*
@@ -104,6 +117,9 @@ std::pair<arma::mat, arma::mat> cholesky(arma::mat& A) {
 /*
 pivoted: 
 (P.t)AP=L(L.t)
+select the column with the largest diagonal element as the pivot col 
+permute columns of hthe matrix to make this pivot column the current one 
+
 
 */
 std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
@@ -112,36 +128,52 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
     }
     int n = A.n_rows;
     arma::mat L(n,n);
-    arma::mat R(n,n); 
+    // arma::mat R(n,n); 
     L.zeros();
-    R.zeros(); 
-
-    arma::mat P(n,n, arma::fill::eye); 
-    int pivot_row; 
-
+    // R.zeros(); 
+    arma::mat P(n,n, arma::fill::eye);  
+    int pivot_col; 
+    // columns j 
     for (int j=0; j<n; j++) {
         if (pivot) {
-            pivot_row = find_pivot(A, j); 
-            std::cout << "pivot row: " << pivot_row << std::endl;
-            
+            pivot_col = find_pivot(A, j); 
 
         }
-        else {pivot_row = j; }
-        if (pivot_row != j) {
-            // // use arma::swap rows 
-            
-            A.swap_rows(j, pivot_row);
-            L.swap_cols(j, pivot_row);
-            P.swap_rows(j, pivot_row);
-            
 
-            
+        else {pivot_col = j; }
+        std::cout << "Before swapping:" << std::endl;
+        std::cout << "A:" << std::endl;
+        A.print();
+        std::cout << "P:" << std::endl;
+        P.print();
+        if (pivot_col != j) {
+            // A.swap_cols(j,pivot_col);
+            // P.swap_cols(j,pivot_col);
+            permute_cols(A, j, pivot_col); 
+            permute_cols(P, j, pivot_col);
+            for (int i = 0; i < P.n_cols; ++i) {
+                double temp = P(j, i);
+                P(j, i) = P(pivot_col, i);
+                P(pivot_col, i) = temp;
+            }
+            // L.swap_cols(j, pivot_col);
      
         }
+        else {
+            arma::vec temp = P.col(j); // Store the column to be swapped
+            P.shed_col(j);
+            P.insert_cols(j, temp);
+
+        }
+        std::cout << "After swapping:" << std::endl;
+        std::cout << "A:" << std::endl;
+        A.print();
+        std::cout << "P:" << std::endl;
+        P.print();
+        // rows i 
         for (int i = 0; i<=j; i++) {
             double sum = 0.0;
             
-    
             for (int k = 0; k<i; k++) {
                 sum += L(i,k) * L(j, k);
             }
@@ -155,7 +187,7 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
                     std::cout << "Warning. Numerical instability."<<std::endl;
                     diagonal+= 1e-10; 
                 }
-                // L(i,j) = std::sqrt(A(i,j)-sum);
+   
                 L(i,j) = std::sqrt(diagonal);
             } 
             else {
@@ -163,12 +195,10 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
             }
         }
     }
-    // arma::mat Pt = arma::trans(P);
-    // arma::mat reconstructed = L*Lt;
+
     arma::mat Lt = arma::trans(L);
-    // arma::mat reconstructed = L*Lt;
-    arma::mat reconstructed = P.t()*L*L.t()*P;
-    // reconstructed.print();
+    arma::mat reconstructed = L*Lt;
+    // arma::mat reconstructed = P.t()*L*L.t()*P;
     if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
         std::cout << "Cholesky successful." << std::endl; 
         
@@ -176,48 +206,9 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
     else {
         std::cout << "Cholesky failed." << std::endl;
     }
-    
-    return {P, L};
+    // L = P*L; 
+
+    return {L, Lt};
 
 }
 
-
-std::pair<arma::umat, arma::mat> full_pivoted_cholesky(arma::mat& A, bool temp) {
-    int n = A.n_rows;
-    arma::mat R(n,n, arma::fill::zeros);
-    arma::umat P = arma::eye<arma::umat>(n, n); 
-
-    for (int k = 0; k < n; ++k) {
- 
-        arma::mat B = A.submat(k, k, n-1, n-1);
-        std::cout << "B size submat: " << B.size() << std::endl;
-        arma::uword l;
-        B.max(l);
-        l += k;
-        std::cout <<"l: " << l << std::endl;
-
-        // rows and cols 
-        A.swap_rows(k, l);
-        A.swap_cols(k, l);
-        R.swap_cols(k, l);
-        P.swap_rows(k, l);
-
-
-        R(k, k) = sqrt(A(k, k));
-        R.submat(k, k+1, n-1, n-1) = A.submat(k, k+1, n-1, n-1) / R(k, k);
-        
-
-        A.submat(k+1, k+1, n-1, n-1) -= R.submat(k, k+1, n-1, n-1) * trans(R.submat(k, k+1, n-1, n-1));
-    }
-
-
-    // Reconstruction based on Cholesky factors (uncomment if needed)
-    // arma::mat reconstructed = P * (R * trans(R)) * trans(P);
-    // if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
-    //     std::cout << "Cholesky successful." << std::endl; 
-    // } else {
-    //     std::cout << "Cholesky failed." << std::endl;
-    // }
-    
-    return {P,R};
-}

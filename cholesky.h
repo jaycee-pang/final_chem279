@@ -39,7 +39,7 @@ for j=1:n
     rjj = (ajj - sum from k=1 to j-1[rkj^2])^1/2 
 */
 std::pair<arma::mat, arma::mat> cholesky(arma::mat& A); 
+void permute_cols(arma::mat & A,int j, int pivot_col);
 
 std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot); 
 
-std::pair<arma::umat, arma::mat> full_pivoted_cholesky(arma::mat& A, bool temp); 

@@ -20,6 +20,7 @@ int main(void) {
         {12, 37, -43},
         {-16, -43, 98}
     }; 
+    
     std::cout << is_posdef(A) << std::endl;
     std::cout << A.is_sympd() << std::endl;
 
@@ -56,7 +57,8 @@ int main(void) {
         result.first.print(); 
         std::cout << "\n L:"<< std::endl;
         result.second.print(); 
-        arma::mat reconstructedA = result.first.t() * result.second * result.second.t() * result.first;
+        arma::mat reconstructedA = result.first*result.second; 
+        // arma::mat reconstructedA = result.first.t() * result.second * result.second.t() * result.first;
         reconstructedA.print("reconstructed"); 
 
     }
