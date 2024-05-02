@@ -3,7 +3,7 @@
 #include "cholesky.h"
 #include "matgen.h"
 #include <armadillo> 
-
+#include "testing.h"
 int main(void) {
     std::vector<int> mat_sizes = {100,200,500,1000,1500,2000,2500}; 
     std::ofstream outfile1("cholesky_error.txt");

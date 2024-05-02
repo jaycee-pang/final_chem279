@@ -54,3 +54,14 @@ arma::mat gen_sympd(int n) {
     pd = 0.5*(pd*pd.t());
     return pd;
 }
+
+
+arma::mat gen_singular(int n) {
+    arma::mat A(n,n,arma::fill::randu); 
+    A = A*A.t();
+    arma::vec eigval; 
+    arma::mat eigvec; 
+    arma::eig_sym(eigval, eigvec, A); 
+    eigval*=1e-10; 
+    return A; 
+}

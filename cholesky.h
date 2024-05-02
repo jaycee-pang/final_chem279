@@ -40,14 +40,10 @@ pivoted:
 (P.t)AP=L(L.t)
 */
 std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot); 
-
+std::pair<arma::mat, arma::mat> LU_decomp(arma::mat & A, bool pivot); 
 
 std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot); 
-double chol_err(arma::mat & A, bool pivot); 
-arma::vec forward_sub( arma::mat&L, arma::vec&b);
-arma::vec backward_sub( arma::mat&L, arma::vec&y); 
-arma::vec solve_lin(arma::mat & A, arma::vec& b, bool pivot); 
-double calc_diff( arma::mat& A,  arma::vec& b,  arma::vec& x) ;
+
 
 // void permute_cols(arma::mat & A,int j, int pivot_col);
 // void permute_rows(arma::mat & A,int i, int pivot_row); 

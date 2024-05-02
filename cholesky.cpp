@@ -11,8 +11,6 @@
 // */
 
 #include "cholesky.h"
-
-
 int find_pivot(const arma::mat& A, int start) {
     int n = A.n_rows;
     int pivot_row = start; 
@@ -83,15 +81,18 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
 
             if (i == j) {
                 // diagonal 
-                double diagonal = A(i,j) - sum;
+                double diagonal = A(j,j) - sum;
                 // std::cout << "diagonal: " << diagonal << std::endl;
+                diagonal = A(j,j) - sum + 1e-10; 
                 
                 if (diagonal <= 1e-10) {
                     std::cout << "Warning. Numerical instability."<<std::endl;
                     diagonal+= 1e-10; 
+                    
+                    // L(j,j) = std::sqrt(diagonal);
                 }
    
-                L(i,j) = std::sqrt(diagonal);
+                L(j,j) = std::sqrt(diagonal);
             } 
             else {
                 L(j,i) = (A(j,i) - sum)/L(i,i);
@@ -156,69 +157,6 @@ std::pair<arma::mat, arma::mat> cholesky(arma::mat& A) {
     
 }
 
-double chol_err(arma::mat & A, bool pivot) {
-    std::pair<arma::mat, arma::mat> result = pivoted_cholesky(A, pivot); 
-    arma::mat L = result.first; 
-    arma::mat Lt = result.second; 
-    arma::mat reconstructedA = L*Lt;
-
-    arma::mat diff = A - reconstructedA; 
-    double error = arma::norm(diff, "fro"); 
-    return error; 
-
-}
-
-
-arma::vec forward_sub( arma::mat&L, arma::vec&b) {
-    arma::vec y(L.n_rows, arma::fill::zeros);
-    for (int i = 0; i <L.n_rows; ++i) {
-        double sum = 0.0;
-        for (int j = 0; j<i; j++) {
-            sum += L(i,j)*y(j);
-        }
-        y(i) = (b(i) - sum)/L(i,i);
-    }
-    return y; 
-    
-}
-
-arma::vec backward_sub(arma::mat&L,  arma::vec&y) {
-    arma::vec x(L.n_rows, arma::fill::zeros);
-    for (int i = L.n_rows-1; i >= 0; i--) {
-        double sum = 0.0;
-        for (int j = i+1; j<L.n_rows; j++) {
-            sum += L(j,i) * x(j);
-        }
-
-        x(i) = (y(i)-sum)/L(i, i);
-    }
-
-    return x;
-}
-// Ax=b
-arma::vec solve_lin(arma::mat & A, arma::vec& b, bool pivot) {
-    std::pair<arma::mat, arma::mat> result = pivoted_cholesky(A, pivot); 
-    arma::mat L = result.first; 
-    arma::mat Lt = result.second; 
-    // std::cout << "L rows L cols: " << L.n_rows <<","<< L.n_cols << std::endl;
-    // std::cout << "Ltrows cols: " <<Lt.n_rows <<","<< Lt.n_cols << std::endl;
-    
-    arma::vec y = forward_sub(L, b); 
-    arma::vec x = backward_sub(Lt, y);
-
-    
-    return x;  
-
-}
-
-double calc_diff(arma::mat& A,  arma::vec& b, arma::vec& x) {
-    arma::vec residual = A*x-b; 
-    double r_norm = arma::norm(residual); 
-    return r_norm; 
-
-
-}
-
 
 std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot) {
     if (!A.is_symmetric() || !A.is_sympd()) {
@@ -227,60 +165,88 @@ std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot) {
     int n = A.n_rows;
     arma::mat L(n,n);
     L.zeros();
-    arma::mat P(n,n, arma::fill::eye);  
-    int pivot_col; 
-    int pivot_row; 
-    // columns j 
-    for (int j=0; j<n; j++) {
-        if (pivot) {
-            pivot_row = find_pivot(A, j);
+    arma::mat P(n,n, arma::fill::eye); // row swaps 
+    arma::mat Q(n,n, arma::fill::eye); // col swaps 
+    for (int j = 0; j<n; j++) {
+        int pivot_row = -1;
+        int pivot_col = -1;
+        double max_val = -std::numeric_limits<double>::infinity();
+        // pivot in A(j:n, j:n)
+        for (int i = j; i<n; i++) {
+            for (int k = j; k<n; k++) {
+                if (std::abs(A(i, k)) > max_val) {
+                    max_val = std::abs(A(i, k));
+                    pivot_row = i;
+                    pivot_col = k;
+                }
+            }
         }
-
-        else {pivot_row = j; }
-   
 
         if (pivot_row != j) {
-
-            A.swap_rows(j, pivot_row); 
+            A.swap_rows(j,pivot_row);
             P.swap_rows(j,pivot_row);
-     
         }
-   
-        for (int i = 0; i<=j; i++) {
-            double sum = 0.0;
-            if (i>j) {L(i,j) = 0.0; }
-            else if (i == j) {
-                for (int k = 0; k<i; k++) 
-                    sum += L(i,k) * L(j, k);
 
-                L(i,i) = std::sqrt(A(i,i)) - sum; 
-         
-            } 
-            else if (i<j) {
-                for (int k=0; k < i; k++) 
-                    sum+= L(j,k)*L(j,k);
-                L(j,i) = (A(j,i) - sum)/L(i,i); 
-            }
-            
-            
+        if (pivot_col != j) {
+            A.swap_cols(j,pivot_col);
+            Q.swap_cols(j,pivot_col);
+        }
+
+        double diagonal = A(j,j);
+        for (int k = 0; k<j;k++)
+            diagonal -= L(j,k)*L(j,k);
+
+        if (diagonal <= 1e-10) {
+            std::cout << "Warning. Numerical instability."<<std::endl;
+            diagonal+= 1e-10; 
+        }
+
+        L(j,j) = std::sqrt(diagonal);
+
+        for (int i = j+1; i < n; i++) {
+            double sum = 0.0;
+            for (int k=0; k<j; k++)
+                sum += L(i,k)*L(j,k);
+
+            L(i,j) = (A(i,j)-sum)/L(j,j);
         }
     }
-    L = P*L; // apply permutations we kept track of in P
-    arma::mat Lt = arma::trans(L); // U is upper traingular 
-    arma::mat reconstructed = L*Lt;
-    // reconstructed.print("reconstructed A"); 
-    if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
-        std::cout << "Cholesky successful." << std::endl; 
-        
-    }
-    else {
-        std::cout << "Cholesky failed." << std::endl;
-    }
-    
-    
-    return {L, Lt};
+
+
+    L = P*L*Q.t();
+
+    return {L,L.t()};
 
 }
 
+
+
+
+std::pair<arma::mat, arma::mat> LU_decomp(arma::mat & A, bool pivot) {
+    int n = A.n_rows;
+    arma::mat L(n,n,arma::fill::eye); 
+    arma::mat U = A; 
+    arma::uvec P = arma::regspace<arma::uvec>(0,n-1); 
+    int pivot_row; 
+    for (int k = 0; k<n-1; k++) {
+        if (pivot) {
+            pivot_row = find_pivot(U, k);
+            U.swap_rows(k, pivot_row); 
+            L.swap_rows(k, pivot_row);
+            std::swap(P(k), P(pivot_row));
+        }
+        else {pivot_row = k;}
+        
+        for (int i = k+1; i<n; i++) {
+            double factor = U(i,k) / U(k,k);
+            L(i,k) = factor;
+            for (int j=k; j<n; j++) {
+                U(i,j) -= factor * U(k,j);
+            }
+        }
+    }
+
+    return {L,U};
+}
 
 

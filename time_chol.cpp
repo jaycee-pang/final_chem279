@@ -4,27 +4,9 @@
 #include <armadillo> 
 #include <chrono> 
 #include <fstream> 
-double chol_timing(int n, bool pivot) {
-    arma::mat A = gen_sympd(n);
-    auto start = std::chrono::high_resolution_clock::now(); 
-    std::pair<arma::mat, arma::mat> result = pivoted_cholesky(A, pivot); 
-    auto end = std::chrono::high_resolution_clock::now(); 
-    std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
-    return duration.count();
-
-}
-
-double arma_timing(int n) {
-    arma::mat A = gen_sympd(n); 
-    arma::mat L; 
-    auto start = std::chrono::high_resolution_clock::now(); 
-    bool success = arma::chol(L,A);
-    auto end = std::chrono::high_resolution_clock::now(); 
-    std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
-    return duration.count();
+#include "testing.h"
 
 
-}
 
 
 int main(void) {
@@ -65,6 +47,31 @@ int main(void) {
         
     }
     outfile3.close();
+
+
+    std::ofstream outfile4("LU_times.txt"); 
+    if (!outfile4.is_open()) {
+        std::cerr << "File error" << std::endl;
+        return 1;
+    }
+    for (int size:mat_sizes) {
+        double time = LU_timing(size, false); 
+        outfile4 << size << "\t" << time << std::endl;
+        
+    }
+    outfile4.close();
+
+    std::ofstream outfile5("LU_pivot_times.txt"); 
+    if (!outfile5.is_open()) {
+        std::cerr << "File error" << std::endl;
+        return 1;
+    }
+    for (int size:mat_sizes) {
+        double time = LU_timing(size, true); 
+        outfile5 << size << "\t" << time << std::endl;
+        
+    }
+    outfile5.close();
 
 
     
