@@ -42,7 +42,13 @@ arma::mat gen_symmetric(int n) {
 
 arma::mat gen_sympd(int n) {
     arma::mat A = arma::randu(n,n); 
-    arma::mat U = arma::trimatu(A); 
-    arma::mat sympd = U*U.t(); 
+    arma::mat sympd = 0.5*(A*A.t());
+    A += 0.1 * arma::eye(n, n); // diagonal vals 
+    // arma::mat U = arma::trimatu(A); 
+    // arma::mat sympd = U*U.t(); 
     return sympd; 
+}
+
+arma::vec gen_vec(int n) {
+    return arma::randu(n);
 }
