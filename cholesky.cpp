@@ -13,14 +13,6 @@
 #include "cholesky.h"
 
 
-/**
- * Find the pivot in the column A from the given starting index. 
- *
- * Look down a column to find the maximum value. 
- *
- * @param A: matrix A (matrix to be decomposed)
- * @return pivot row: row index of the maximum value in the start column to be used as the pivot. 
- */
 int find_pivot(const arma::mat& A, int start) {
     int n = A.n_rows;
     int pivot_row = start; 
@@ -45,10 +37,6 @@ int find_pivot(const arma::mat& A, int start) {
 }
 
 
-/*
-pivoted: 
-(P.t)AP=L(L.t)
-*/
 std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
     if (!A.is_symmetric() || !A.is_sympd()) {
         throw std::invalid_argument("Input matrix is not symmetric/positive definite."); 
@@ -126,16 +114,7 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
     return {L, Lt};
 
 }
-/*
-A  = LL.t 
-L is lower triangular
-*/
-/* Following accuracy and stability of numerical algorithms 
-for j=1:n // cols 
-    for i=1:j-1  // rows 
-        rij = (aij - sum from k=1 to i-1[rki*rkj])/rii
-    rjj = (ajj - sum from k=1 to j-1[rkj^2])^1/2 
-*/
+
 std::pair<arma::mat, arma::mat> cholesky(arma::mat& A) {
     if (!A.is_symmetric() || !A.is_sympd()) {
         throw std::invalid_argument("Input matrix is not symmetric/positive definite."); 
@@ -181,30 +160,62 @@ double chol_err(arma::mat & A, bool pivot) {
     std::pair<arma::mat, arma::mat> result = pivoted_cholesky(A, pivot); 
     arma::mat L = result.first; 
     arma::mat Lt = result.second; 
-    arma::mat reconstructedA = L*Lt; 
+    arma::mat reconstructedA = L*Lt;
+
     arma::mat diff = A - reconstructedA; 
     double error = arma::norm(diff, "fro"); 
     return error; 
 
 }
 
+
+arma::vec forward_sub( arma::mat&L, arma::vec&b) {
+    arma::vec y(L.n_rows, arma::fill::zeros);
+    for (int i = 0; i <L.n_rows; ++i) {
+        double sum = 0.0;
+        for (int j = 0; j<i; j++) {
+            sum += L(i,j)*y(j);
+        }
+        y(i) = (b(i) - sum)/L(i,i);
+    }
+    return y; 
+    
+}
+
+arma::vec backward_sub(arma::mat&L,  arma::vec&y) {
+    arma::vec x(L.n_rows, arma::fill::zeros);
+    for (int i = L.n_rows-1; i >= 0; i--) {
+        double sum = 0.0;
+        for (int j = i+1; j<L.n_rows; j++) {
+            sum += L(j,i) * x(j);
+        }
+
+        x(i) = (y(i)-sum)/L(i, i);
+    }
+
+    return x;
+}
 // Ax=b
-arma::vec solve(arma::mat & A, arma::vec& b, bool pivot) {
-    
-    
+arma::vec solve_lin(arma::mat & A, arma::vec& b, bool pivot) {
     std::pair<arma::mat, arma::mat> result = pivoted_cholesky(A, pivot); 
     arma::mat L = result.first; 
     arma::mat Lt = result.second; 
+    // std::cout << "L rows L cols: " << L.n_rows <<","<< L.n_cols << std::endl;
+    // std::cout << "Ltrows cols: " <<Lt.n_rows <<","<< Lt.n_cols << std::endl;
     
-    arma::vec x = arma::solve(trimatl(L), arma::solve(trimatu(Lt), b));
-    return x; 
+    arma::vec y = forward_sub(L, b); 
+    arma::vec x = backward_sub(Lt, y);
+
+    
+    return x;  
 
 }
 
-double calc_diff(const arma::mat& A, const arma::vec& b, const arma::vec&x) {
-    arma::vec residual = A*x -b; 
+double calc_diff(arma::mat& A,  arma::vec& b, arma::vec& x) {
+    arma::vec residual = A*x-b; 
     double r_norm = arma::norm(residual); 
     return r_norm; 
+
 
 }
 

@@ -7,7 +7,7 @@ OBJS = cholesky.o matgen.o
 TXT = pivoted_cholesky_times.txt cholesky_times.txt armachol_times.txt cholesky_error.txt pivoted_cholesky_error.txt \
 	arma_error.txt
 
-EXECU = test_cholesky time_chol chol_err
+EXECU = test_cholesky time_chol chol_err solvers
 
 cholesky.o: cholesky.cpp
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c cholesky.cpp -o cholesky.o
@@ -22,6 +22,9 @@ time_chol: $(OBJS)
 chol_err: $(OBJS)
 	$(CPP) $(CPPFLAGS) -o chol_err chol_err.cpp $(OBJS) $(INCLUDES) $(LDFLAGS)
 
+solvers: $(OBJS)
+	$(CPP) $(CPPFLAGS) -o solvers solvers.cpp $(OBJS) $(INCLUDES) $(LDFLAGS)
+
 .cpp.o:
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $< -o $@
 
@@ -31,4 +34,4 @@ move:
 rmtxt: 
 	cd data/ && rm -f $(TXT)
 clean: 
-	rm -f $(OBJS) $(EXECU)
+	rm -f $(OBJS) $(EXECU) $(TXT)

@@ -23,4 +23,3 @@ void make_sympd(arma::mat& A);
 arma::mat gen_symmetric(int n);
 
 arma::mat gen_sympd(int n);
-arma::vec gen_vec(int n); 

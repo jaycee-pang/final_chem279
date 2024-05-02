@@ -47,8 +47,11 @@ arma::mat gen_sympd(int n) {
     // arma::mat U = arma::trimatu(A); 
     // arma::mat sympd = U*U.t(); 
     return sympd; 
-}
+    // arma::arma_rng::set_seed_random();
+    // arma::mat A = arma::randu(n, n); 
 
-arma::vec gen_vec(int n) {
-    return arma::randu(n);
+    // arma::mat symm = 0.5*(A+A.t()); 
+    // arma::mat pd = symm * symm.t();
+
+    // return pd;
 }
