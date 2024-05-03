@@ -1,7 +1,7 @@
 CPP = g++
 C = gcc
 CPPFLAGS = -std=c++20 -I/opt/homebrew/opt/armadillo/include
-INCLUDES = -Iinc -I/opt/homebrew/opt/eigen/include/eigen3 -I/opt/homebrew/opt/armadillo/include
+INCLUDES = -Iinc -I/opt/homebrew/opt/armadillo/include
 LDFLAGS = -L/opt/homebrew/opt/armadillo/lib -larmadillo -lblas -llapack
 OBJS = cholesky.o matgen.o testing.o
 TXT = pivoted_cholesky_times.txt cholesky_times.txt armachol_times.txt cholesky_error.txt pivoted_cholesky_error.txt \
