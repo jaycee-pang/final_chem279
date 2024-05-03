@@ -15,21 +15,21 @@ int find_pivot(const arma::mat& A, int start) {
     int n = A.n_rows;
     int pivot_row = start; 
     // std::cout << "Starting from col " << start<<std::endl;
-    double max_val = A(start, start);
+    double max_val = std::abs(A(start, start));
     // find the max val 
     // compute elements below the idagonal rows below start
     for (int i=start+1; i<n ; i++) {
-        double diagonal = A(i, start);
-        if (diagonal > max_val) {
-            max_val = diagonal; 
+        double val = A(i, start);
+        if (std::abs(val) > max_val) {
+            max_val = val; 
             pivot_row = i; 
             // row index of maximum val in a column
 
         }
         
     }
-    // std::cout << "max val: "<< max_val << std::endl;
-    // std::cout << "pivot row: " << pivot_row << std::endl;
+    std::cout << "max val: "<< max_val << std::endl;
+    std::cout << "pivot row: " << pivot_row << std::endl;
     return pivot_row;
 
 }
@@ -64,6 +64,7 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
             P.swap_rows(j,pivot_row);
      
         }
+    
    
         // std::cout << "After swapping:" << std::endl;
         // std::cout << "A:" << std::endl;
@@ -167,55 +168,43 @@ std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot) {
     L.zeros();
     arma::mat P(n,n, arma::fill::eye); // row swaps 
     arma::mat Q(n,n, arma::fill::eye); // col swaps 
-    for (int j = 0; j<n; j++) {
-        int pivot_row = -1;
-        int pivot_col = -1;
-        double max_val = -std::numeric_limits<double>::infinity();
-        // pivot in A(j:n, j:n)
-        for (int i = j; i<n; i++) {
-            for (int k = j; k<n; k++) {
-                if (std::abs(A(i, k)) > max_val) {
-                    max_val = std::abs(A(i, k));
-                    pivot_row = i;
-                    pivot_col = k;
-                }
+    for (int j = 0; j < n; ++j) {
+        double pivot = A(j,j);
+        int max_idx = j;
+        for (int i = j + 1; i < n; ++i) {
+            if (std::abs(A(i,j)) > abs(A(max_idx, j))) {
+                max_idx = i;
             }
         }
-
-        if (pivot_row != j) {
-            A.swap_rows(j,pivot_row);
-            P.swap_rows(j,pivot_row);
+        if (max_idx != j) {
+            A.swap_rows(j, max_idx);
+            L.swap_rows(j, max_idx);
+            P.swap_rows(j, max_idx);
         }
 
-        if (pivot_col != j) {
-            A.swap_cols(j,pivot_col);
-            Q.swap_cols(j,pivot_col);
-        }
+        // Update pivot after potential swap
+        pivot = A(j, j);
 
-        double diagonal = A(j,j);
-        for (int k = 0; k<j;k++)
-            diagonal -= L(j,k)*L(j,k);
-
-        if (diagonal <= 1e-10) {
-            std::cout << "Warning. Numerical instability."<<std::endl;
-            diagonal+= 1e-10; 
-        }
-
-        L(j,j) = std::sqrt(diagonal);
-
-        for (int i = j+1; i < n; i++) {
-            double sum = 0.0;
-            for (int k=0; k<j; k++)
-                sum += L(i,k)*L(j,k);
-
-            L(i,j) = (A(i,j)-sum)/L(j,j);
+        L(j,j) = std::sqrt(pivot);
+        for (int i = j+1; i<n; i++) {
+            L(i,j) =A(i,j) / L(j,j);
+            for (int k = j+1; k <= i; k++) {
+                A(i, k) -= L(i,j)*L(k,j);
+            }
         }
     }
-
-
-    L = P*L*Q.t();
-
-    return {L,L.t()};
+    // L = P*L;
+    arma::mat Lt = arma::trans(L); // U upper triangular
+    arma::mat reconstructed = L*Lt;
+    // if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
+    //     std::cout << "Cholesky successful." << std::endl; 
+        
+    // }
+    // else {
+    //     std::cout << "Cholesky failed." << std::endl;
+    // }
+    
+    return {L,Lt};
 
 }
 
