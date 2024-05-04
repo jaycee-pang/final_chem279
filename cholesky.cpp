@@ -98,7 +98,7 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
             }
         }
     }
-    // L = P*L; // apply permutations we kept track of in P
+    L = P*L; // apply permutations we kept track of in P
     arma::mat Lt = arma::trans(L); // U is upper traingular 
     arma::mat reconstructed = L*Lt;
     if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {

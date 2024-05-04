@@ -12,12 +12,10 @@ int main(void) {
         {-16, -43, 98}
     }; 
     // arma::mat A = {{4,1,-2}, {1,5, 3}, {-2,3,6}};
-    
     std::cout << A.is_sympd() << std::endl;
-
     try {
         A.print("A");
-        std::pair<arma::mat , arma::mat> result = cholesky(A);
+        std::pair<arma::mat , arma::mat> result = pivoted_cholesky(A,false);
         std::cout <<std::endl;
         
         std::cout << "\n L:"<< std::endl;
@@ -26,9 +24,8 @@ int main(void) {
         result.second.print(); 
         arma::mat reconstructedA = result.first*result.second; 
         reconstructedA.print("reconstructed"); 
-       
-
     }
+    
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
@@ -38,10 +35,15 @@ int main(void) {
 
     // arma::mat A2 = {{4,1,-2}, {1,5, 3}, {-2,3,6}};
     arma::mat A2 = gen_sympd(5);
+    // arma::mat A2 = {
+    //     {4,  12, -16},
+    //     {12, 37, -43},
+    //     {-16, -43, 98}
+    // }; 
     std::cout << A2.is_sympd() << std::endl;
     try {
         A2.print("A");
-        std::pair<arma::mat, arma::mat> result = pivoted_cholesky(A,true);  
+        std::pair<arma::mat, arma::mat> result = pivoted_cholesky(A2,true);  
         std::cout <<std::endl;
         std::cout << "\n L:"<< std::endl;
         result.first.print(); 
@@ -66,7 +68,7 @@ int main(void) {
     std::cout << A3.is_sympd() << std::endl;
     try {
         A3.print("A");
-        arma::mat L = arma::chol(A);
+        arma::mat L = arma::chol(A3);
         L.print("L"); 
         arma::mat Lt = L.t();
         Lt.print("Lt"); 
@@ -138,24 +140,19 @@ int main(void) {
     }
 
 
-
-
-
-
-
     std::cout << "\n\nNew trial chol" << std::endl;
     arma::mat A10 = gen_sympd(5);
     make_sympd(A10);
     try {
         A10.print("A");
-        std::pair<arma::mat , arma::mat> result = other_chol(A10,true);
+        std::pair<arma::mat , arma::mat> result3 = other_chol(A10,true);
         std::cout <<std::endl;
         
         std::cout << "\n L:"<< std::endl;
-        result.first.print();  
+        result3.first.print();  
         std::cout << "\n L trnaspose:"<< std::endl; // upper triangular
-        result.second.print(); 
-        arma::mat reconstructedA = result.first*result.second; 
+        result3.second.print(); 
+        arma::mat reconstructedA = result3.first*result3.second; 
         reconstructedA.print("reconstructed"); 
        
 
@@ -163,6 +160,42 @@ int main(void) {
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
+    std::vector<int> mat_sizes = {100,200,500,1000,1500,2000,2500};
+    int count = 0; 
+    for (int i=0; i < 100; i++) {
+        arma::mat Amat = gen_singular(500); 
+        std::pair<arma::mat , arma::mat> result4 = other_chol(Amat,true);
+        arma::mat L= result4.first; 
+        arma::mat Lt = result4.second; 
+        arma::mat reconA = L*Lt; 
+        arma::mat diff = Amat - reconA; 
+        double error = arma::norm(diff, "fro"); 
+
+        if (error >= 0) {count++; }
+        
+       
+    }
+    std::cout << "count: " << count << std::endl;
+
+    int count2 = 0; 
+    std::cout << "\n\n pivoted cholesky again" << std::endl;
+    for (int i=0; i < 100; i++) {
+        arma::mat Amat = gen_singular(500); 
+        std::pair<arma::mat , arma::mat> result4 = other_chol(Amat,true);
+        arma::mat L= result4.first; 
+        arma::mat Lt = result4.second; 
+        arma::mat reconA = L*Lt; 
+        arma::mat diff = Amat - reconA; 
+        double error = arma::norm(diff, "fro"); 
+
+        if (error >= 0) {count2++; }
+        
+       
+    }
+    std::cout << "count: " << count2 << std::endl;
+
+
+
 
     
     return 0; 
