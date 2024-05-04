@@ -93,7 +93,7 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
                     // L(j,j) = std::sqrt(diagonal);
                 }
    
-                L(j,j) = std::sqrt(diagonal);
+                L(j,j) = std::sqrt(std::abs(diagonal));
             } 
             else {
                 L(j,i) = (A(j,i) - sum)/L(i,i);
@@ -117,46 +117,6 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
 
 }
 
-std::pair<arma::mat, arma::mat> cholesky(arma::mat& A) {
-    if (!A.is_symmetric() || !A.is_sympd()) {
-        throw std::invalid_argument("Input matrix is not symmetric/positive definite."); 
-    }
-    int n =A.n_rows; 
-    arma::mat L(n,n);
-    L.zeros();
-    arma::uvec p(n);
-    for (int j=0; j<n; j++) {
-        for (int i = 0; i<=j; i++) {
-            double sum = 0.0;
-
-            for (int k = 0; k<i; k++) {
-                sum += L(i,k) * L(j, k);
-            }
-
-            if (i == j) {
-                L(i,j) = std::sqrt(A(i,j)-sum);
-            } 
-            else {
-                L(j,i) = (A(j,i) - sum)/L(i,i);
-            }
-        }
-    }
-    
-    arma::mat Lt = arma::trans(L); // U upper triangular
-    // tolerance?
-    arma::mat reconstructed = L*Lt;
-    // reconstructed.print("reconstructed A"); 
-    if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
-        std::cout << "Cholesky successful." << std::endl; 
-        
-    }
-    else {
-        std::cout << "Cholesky failed." << std::endl;
-    }
-    
-    return {L,Lt};
-    
-}
 
 
 std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot) {
@@ -167,12 +127,11 @@ std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot) {
     arma::mat L(n,n);
     L.zeros();
     arma::mat P(n,n, arma::fill::eye); // row swaps 
-    arma::mat Q(n,n, arma::fill::eye); // col swaps 
     for (int j = 0; j < n; ++j) {
         double pivot = A(j,j);
         int max_idx = j;
         for (int i = j + 1; i < n; ++i) {
-            if (std::abs(A(i,j)) > abs(A(max_idx, j))) {
+            if (std::abs(A(i,j)) > std::abs(A(max_idx, j))) {
                 max_idx = i;
             }
         }
@@ -184,16 +143,17 @@ std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot) {
 
         // Update pivot after potential swap
         pivot = A(j, j);
+        std::cout << "pivot: " << pivot << std::endl;
 
-        L(j,j) = std::sqrt(pivot);
+        L(j,j) = std::sqrt(std::abs(pivot));
         for (int i = j+1; i<n; i++) {
-            L(i,j) =A(i,j) / L(j,j);
+            L(i,j) =A(i,j)/L(j,j);
             for (int k = j+1; k <= i; k++) {
                 A(i, k) -= L(i,j)*L(k,j);
             }
         }
     }
-    // L = P*L;
+    L = P*L;
     arma::mat Lt = arma::trans(L); // U upper triangular
     arma::mat reconstructed = L*Lt;
     // if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
