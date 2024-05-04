@@ -62,6 +62,9 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
 
             A.swap_rows(j, pivot_row); 
             P.swap_rows(j,pivot_row);
+
+            A.swap_cols(j, pivot_row); 
+            P.swap_cols(j, pivot_row);
      
         }
     
@@ -106,7 +109,6 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
     else {
         std::cout << "Cholesky failed." << std::endl;
     }
-    
     
     return {L, Lt};
 
