@@ -6,7 +6,8 @@ LDFLAGS = -L/opt/homebrew/opt/armadillo/lib -larmadillo -lblas -llapack
 OBJS = cholesky.o matgen.o testing.o
 TXT = pivoted_cholesky_times.txt cholesky_times.txt armachol_times.txt cholesky_error.txt pivoted_cholesky_error.txt \
 	arma_error.txt LU_times.txt LU_pivot_times.txt cholesky_inv_err.txt piv_cholesky_inv_err.txt \
-	LU_decomp_error.txt LU_pivot_decomp_error.txt pivoted_cholesky_times_sing.txt pivoted_cholesky_err_sing.txt
+	LU_decomp_error.txt LU_pivot_decomp_error.txt pivoted_cholesky_times_sing.txt pivoted_cholesky_err_sing.txt \
+	cholesky_Axb_err.txt cholesky_piv_Axb_err.txt
 
 EXECU = test_cholesky time_chol chol_err solvers test_other
 
