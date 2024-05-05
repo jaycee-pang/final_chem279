@@ -1,13 +1,14 @@
 CPP = g++
 C = gcc
-CPPFLAGS = -std=c++20 -I/opt/homebrew/opt/armadillo/include
+CPPFLAGS = -std=c++20 -I/opt/homebrew/opt/armadillo/include -O1
 INCLUDES = -Iinc -I/opt/homebrew/opt/armadillo/include
 LDFLAGS = -L/opt/homebrew/opt/armadillo/lib -larmadillo -lblas -llapack
 OBJS = cholesky.o matgen.o testing.o
 TXT = pivoted_cholesky_times.txt cholesky_times.txt armachol_times.txt cholesky_error.txt pivoted_cholesky_error.txt \
-	arma_error.txt LU_times.txt LU_pivot_times.txt cholesky_inv_err.txt piv_cholesky_inv_err.txt
+	arma_error.txt LU_times.txt LU_pivot_times.txt cholesky_inv_err.txt piv_cholesky_inv_err.txt \
+	LU_decomp_error.txt LU_pivot_decomp_error.txt pivoted_cholesky_times_sing.txt pivoted_cholesky_err_sing.txt
 
-EXECU = test_cholesky time_chol chol_err solvers
+EXECU = test_cholesky time_chol chol_err solvers test_other
 
 cholesky.o: cholesky.cpp
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c cholesky.cpp -o cholesky.o
@@ -27,7 +28,8 @@ chol_err: $(OBJS)
 
 solvers: $(OBJS)
 	$(CPP) $(CPPFLAGS) -o solvers solvers.cpp $(OBJS) $(INCLUDES) $(LDFLAGS)
-
+test_other: $(OBJS)
+	$(CPP) $(CPPFLAGS) -o test_other test_other.cpp $(OBJS) $(INCLUDES) $(LDFLAGS)
 .cpp.o:
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $< -o $@
 

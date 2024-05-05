@@ -21,7 +21,7 @@
  * @param A: matrix A (matrix to be decomposed)
  * @return pivot row: row index of the maximum value to be used as the pivot. 
  */
-int find_pivot(const arma::mat& A, int start) ;
+int find_pivot(const arma::Mat<double>& A, int start) ;
 
 /*
 A  = LL.t 
@@ -33,16 +33,16 @@ for j=1:n // cols
         rij = (aij - sum from k=1 to i-1[rki*rkj])/rii
     rjj = (ajj - sum from k=1 to j-1[rkj^2])^1/2 
 */
-std::pair<arma::mat, arma::mat> cholesky(arma::mat& A); 
+// std::pair<arma::Mat<double>, arma::Mat<double>> cholesky(arma::mat& A); 
 
 /*
 pivoted: 
 (P.t)AP=L(L.t)
 */
-std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot); 
-std::pair<arma::mat, arma::mat> LU_decomp(arma::mat & A, bool pivot); 
+std::pair<arma::Mat<double>, arma::Mat<double>> pivoted_cholesky(arma::Mat<double>& A, bool pivot); 
+std::pair<arma::Mat<double>,arma::Mat<double>> LU_decomp(arma::Mat<double> & A, bool pivot); 
 
-std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot); 
+std::pair<arma::Mat<double>,arma::Mat<double>> other_chol(arma::Mat<double>& A, bool pivot); 
 
 
 // void permute_cols(arma::mat & A,int j, int pivot_col);

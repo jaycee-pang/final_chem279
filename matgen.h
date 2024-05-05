@@ -16,12 +16,12 @@
 // arma has symmatu / symmatl	 	generate symmetric matrix from given matrix
 
 
-void make_symmetric(arma::mat & A);
+void make_symmetric(arma::Mat<double> & A);
 
-void make_sympd(arma::mat& A); 
+void make_sympd(arma::Mat<double>& A); 
 
-arma::mat gen_symmetric(int n);
+arma::Mat<double> gen_symmetric(int n);
 
-arma::mat gen_sympd(int n);
+arma::Mat<double> gen_sympd(int n);
 
-arma::mat gen_singular(int n); 
+arma::Mat<double> gen_singular(int n); 

@@ -7,17 +7,18 @@
 #include <chrono> 
 #include <random> 
 
-void chol_testing(int n, bool pivot);
+void chol_testing(arma::Mat<double> & A, bool pivot);
 
-double chol_err(arma::mat & A, bool pivot); 
-arma::vec forward_sub( arma::mat&L, arma::vec&b);
-arma::vec backward_sub( arma::mat&L, arma::vec&y); 
-arma::vec solve_lin(arma::mat & A, arma::vec& b, bool pivot); 
-double calc_diff( arma::mat& A,  arma::vec& b,  arma::vec& x) ;
-double inverse_testing(arma::mat & A, bool pivot); 
+double chol_err(arma::Mat<double> & A, bool pivot); 
+arma::vec forward_sub(arma::Mat<double> & L, arma::vec&b);
+arma::vec backward_sub(arma::Mat<double> & L, arma::vec&y); 
+arma::vec solve_lin(arma::Mat<double> & A, arma::vec& b, bool pivot); 
+double calc_diff(arma::Mat<double> & A,  arma::vec& b,  arma::vec& x) ;
+double inverse_testing(arma::Mat<double> & A, bool pivot); 
 
-double chol_timing(int n, bool pivot) ;
+double chol_timing(arma::Mat<double> & A, bool pivot) ;
 
-double LU_timing(int n, bool pivot);
+double LU_timing(arma::Mat<double> & A, bool pivot);
 
-double arma_timing(int n);
+double arma_timing(arma::Mat<double> & A);
+double LU_decomp_err(arma::Mat<double> & A, bool pivot);

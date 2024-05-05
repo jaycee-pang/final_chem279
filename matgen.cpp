@@ -17,7 +17,7 @@
 // arma has symmatu / symmatl	 	generate symmetric matrix from given matrix
 
 
-void make_symmetric(arma::mat & A) {
+void make_symmetric(arma::Mat<double> & A) {
     
     A = 0.5*(A+A.t()); // symmetric 
     if (!A.is_symmetric()|| A.n_rows != A.n_cols)  {
@@ -25,43 +25,37 @@ void make_symmetric(arma::mat & A) {
     }
 }
 
-void make_sympd(arma::mat& A) {
+void make_sympd(arma::Mat<double>& A) {
     A = 0.5*(A*A.t()); // smmetric
     if (!A.is_symmetric() || A.n_rows != A.n_cols)  {
         throw std::logic_error("Matrix could not be made symmetric"); 
     }
-    arma::mat sympd = A*A.t();
+    arma::Mat<double> sympd = A*A.t();
 }
 
-arma::mat gen_symmetric(int n) {
-    arma::mat A = arma::randu(n,n);
-    arma::mat symmetric = arma::symmatu(A); 
+arma::Mat<double> gen_symmetric(int n) {
+    arma::Mat<double> A = arma::randu(n,n);
+    arma::Mat<double> symmetric = arma::symmatu(A); 
     return symmetric; 
 
 }
 
-arma::mat gen_sympd(int n) {
-    // arma::mat A = arma::randu(n,n); 
-    // arma::mat sympd = 0.5*(A*A.t());
-    // A += 0.1 * arma::eye(n, n); // diagonal vals 
-    // // arma::mat U = arma::trimatu(A); 
-    // // arma::mat sympd = U*U.t(); 
-    // return sympd; 
-    // arma::arma_rng::set_seed_random();
-    arma::mat A(n, n, arma::fill::randu); 
-    arma::mat symm = 0.5 * (A + A.t()); 
-    arma::mat pd = symm + 1e-6 * arma::eye(n, n); 
-    pd = 0.5*(pd*pd.t());
-    return pd;
+arma::Mat<double> gen_sympd(int n) {
+    arma::Mat<double> A = arma::randu<arma::mat>(n, n); 
+    A = 0.5*(A+A.t());  // symmetric 
+
+    arma::Mat<double> pd = A + n*arma::eye<arma::mat>(n, n); 
+    return pd ;
+    
 }
 
 
-arma::mat gen_singular(int n) {
-    arma::mat A(n,n,arma::fill::randu); 
+arma::Mat<double> gen_singular(int n) {
+    arma::Mat<double> A(n,n,arma::fill::randu); 
     A = A*A.t();
     arma::vec eigval; 
-    arma::mat eigvec; 
-    arma::eig_sym(eigval, eigvec, A); 
+    arma::Mat<double> eigvec; 
+    arma::eig_sym(eigval, eigvec, A);  // eigen decomposition to ensure symmetry 
     eigval*=1e-10; 
     return A; 
 }

@@ -11,7 +11,7 @@
 // */
 
 #include "cholesky.h"
-int find_pivot(const arma::mat& A, int start) {
+int find_pivot(const arma::Mat<double>& A, int start) {
     int n = A.n_rows;
     int pivot_row = start; 
     // std::cout << "Starting from col " << start<<std::endl;
@@ -35,14 +35,14 @@ int find_pivot(const arma::mat& A, int start) {
 }
 
 
-std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
+std::pair<arma::Mat<double>, arma::Mat<double>> pivoted_cholesky(arma::Mat<double>& A, bool pivot) {
     if (!A.is_symmetric() || !A.is_sympd()) {
         throw std::invalid_argument("Input matrix is not symmetric/positive definite."); 
     }
     int n = A.n_rows;
-    arma::mat L(n,n);
+    arma::Mat<double> L(n,n);
     L.zeros();
-    arma::mat P(n,n, arma::fill::eye);  
+    arma::Mat<double> P(n,n, arma::fill::eye);  
     int pivot_col; 
     int pivot_row; 
     // columns j 
@@ -63,8 +63,8 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
             A.swap_rows(j, pivot_row); 
             P.swap_rows(j,pivot_row);
 
-            A.swap_cols(j, pivot_row); 
-            P.swap_cols(j, pivot_row);
+            // A.swap_cols(j, pivot_row); 
+            // P.swap_cols(j, pivot_row);
      
         }
     
@@ -99,8 +99,8 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
         }
     }
     L = P*L; // apply permutations we kept track of in P
-    arma::mat Lt = arma::trans(L); // U is upper traingular 
-    arma::mat reconstructed = L*Lt;
+    arma::Mat<double> Lt = arma::trans(L); // U is upper traingular 
+    arma::Mat<double> reconstructed = L*Lt;
     if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
         // std::cout << "Cholesky successful." << std::endl; 
         return {L,Lt};
@@ -116,14 +116,14 @@ std::pair<arma::mat, arma::mat> pivoted_cholesky(arma::mat& A, bool pivot) {
 
 
 
-std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot) {
+std::pair<arma::Mat<double>, arma::Mat<double>> other_chol(arma::Mat<double>& A, bool pivot) {
     if (!A.is_symmetric() || !A.is_sympd()) {
         throw std::invalid_argument("Input matrix is not symmetric/positive definite."); 
     }
     int n = A.n_rows;
-    arma::mat L(n,n);
+    arma::Mat<double> L(n,n);
     L.zeros();
-    arma::mat P(n,n, arma::fill::eye); // row swaps 
+    arma::Mat<double> P(n,n, arma::fill::eye); // row swaps 
     for (int j = 0; j < n; ++j) {
         double pivot = A(j,j);
         int max_idx = j;
@@ -152,8 +152,8 @@ std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot) {
         }
     }
     // L = P*L;
-    arma::mat Lt = arma::trans(L); // U upper triangular
-    arma::mat reconstructed = L*Lt;
+    arma::Mat<double> Lt = arma::trans(L); // U upper triangular
+    arma::Mat<double> reconstructed = L*Lt;
     if (arma::approx_equal(A, reconstructed, "absdiff", 1e-4)) {
         return {L,Lt};
         
@@ -169,10 +169,10 @@ std::pair<arma::mat, arma::mat> other_chol(arma::mat& A, bool pivot) {
 
 
 
-std::pair<arma::mat, arma::mat> LU_decomp(arma::mat & A, bool pivot) {
+std::pair<arma::Mat<double>, arma::Mat<double>> LU_decomp(arma::Mat<double> & A, bool pivot) {
     int n = A.n_rows;
-    arma::mat L(n,n,arma::fill::eye); 
-    arma::mat U = A; 
+    arma::Mat<double> L(n,n,arma::fill::eye); 
+    arma::Mat<double> U = A; 
     arma::uvec P = arma::regspace<arma::uvec>(0,n-1); 
     int pivot_row; 
     for (int k = 0; k<n-1; k++) {
