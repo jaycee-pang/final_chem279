@@ -133,6 +133,7 @@ double chol_timing(arma::Mat<double> & A, bool pivot) {
 }
 
 
+
 double LU_timing(arma::Mat<double> & A, bool pivot) {
     // arma::Mat<double> A = gen_sympd(n);
 

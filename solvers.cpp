@@ -71,25 +71,35 @@ int main(void) {
     }
     outfile2.close();
 
-    
-    
-    // for (int i=0; i<mat_sizes.size(); i++) {
-    //     int size = mat_sizes[i];
-    //     arma::Mat<double> A = matrices[i]; 
-    //     arma::Mat<double> A_arma = A; 
-    //     arma::vec b=bvecs[i];
-    //     arma::vec b_arma = b; 
-    
-    //     arma::vec x = solve_lin(A, b, true);
-    //     arma::vec x_arma = arma::solve(A_arma, b_arma);
-    //     // arma::vec residual = A*x-b;
-    //     // double residual_norm = arma::norm(residual);
-    //     // std::cout << "residual norm: " << residual_norm << std::endl;
-    //     double error_norm = arma::norm(x-x_arma); 
-    //     std::cout << "error norm: " << error_norm << std::endl;
+
+    std::cout << "\n\nLinear solve with Full Pivoted Cholesky" << std::endl;
+    std::ofstream outfile3a("cholesky_full_piv_Axb_err.txt");
+    if (!outfile3a.is_open()) {
+        std::cerr <<"File error"<<std::endl;
+        return 1; 
+    }
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
+        arma::Mat<double> A = matrices[i]; 
+        arma::Mat<double> A_arma = A; 
+        std::pair<arma::Mat<double>, arma::Mat<double>> result = full_pivoted_cholesky(A); 
+        arma::Mat<double> L = result.first; 
+        arma::Mat<double> Lt = result.second; 
+        arma::vec b=bvecs[i];
+        arma::vec b_arma = b; 
+        arma::vec y = forward_sub(L, b); 
+        arma::vec x = backward_sub(Lt, y); 
+
+        arma::vec residual = A*x-b;
+        arma::vec x_arma = arma::solve(A_arma, b_arma);
+        double error_norm = arma::norm(x-x_arma); 
+       
+        outfile3a << size << "\t" << error_norm << std::endl;
         
 
-    // }
+    }
+    outfile3a.close();
+
     
     
 
@@ -126,6 +136,40 @@ int main(void) {
         outfile4 << size << "\t" <<error_inv << std::endl;
     }
     outfile4.close(); 
+
+
+    std::cout << "\n\ntesting inverse matrix solving for Chol with full pivoting" << std::endl;
+    std::ofstream outfile4a("full_piv_cholesky_inv_err.txt");
+    if (!outfile4a.is_open()) {
+        std::cerr <<"File error"<<std::endl;
+        return 1; 
+    }
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
+        arma::Mat<double> A = matrices[i];
+        std::pair<arma::Mat<double>, arma::Mat<double>> result = full_pivoted_cholesky(A); 
+        arma::Mat<double> L = result.first; 
+        arma::Mat<double> Lt = result.second; 
+        arma::Mat<double> Linv = arma::inv(L); 
+        arma::Mat<double> Ltinv = arma::inv(Lt); 
+        arma::Mat<double> Ainv = Ltinv * Linv; 
+        arma::Mat<double> I(A.n_rows, A.n_cols, arma::fill::eye);
+        arma::Mat<double> A_i = A*Ainv; 
+        arma::Mat<double> recon3 = L*Lt; 
+        double tolerance = 1e-6;
+        if (arma::approx_equal(A_i,I, "absdiff", tolerance)) {
+            std::cout << "Inverse of A matches." << std::endl;
+        } else {
+            std::cout << "Inverse of A not found." << std::endl;
+        }
+
+        arma::Mat<double> error = A_i - I; 
+        double error_inv = arma::norm(error, "fro"); 
+        std::cout << "Error inverse from Chol pivot: " << error_inv <<std::endl;
+        outfile4a << size << "\t" <<error_inv << std::endl;
+    }
+    outfile4a.close(); 
+
 
 
 

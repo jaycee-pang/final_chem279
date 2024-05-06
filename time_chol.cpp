@@ -210,6 +210,25 @@ int main(void) {
     }
     outfile6.close();
 
+    std::ofstream outfile7("full_pivoted_cholesky_times.txt"); 
+    if (!outfile7.is_open()) {
+        std::cerr << "File error" << std::endl;
+        return 1;
+    }
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
+        arma::Mat<double> A = matrices[i]; 
+        auto start = std::chrono::steady_clock::now();
+        std::pair<arma::Mat<double>, arma::Mat<double>> result = full_pivoted_cholesky(A);
+        auto end = std::chrono::high_resolution_clock::now(); 
+        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+        double time = duration.count();
+        outfile7 << size << "\t" << time << std::endl;
+        
+        
+    }
+    outfile7.close();
+
 
     
     return 0; 

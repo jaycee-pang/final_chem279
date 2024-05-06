@@ -103,6 +103,56 @@ int main(void) {
     }
     outfile6.close();
 
+    std::ofstream outfile7("full_piv_cholesky_error.txt");
+    if (!outfile7.is_open()) {
+        std::cerr <<"File error"<<std::endl;
+        return 1; 
+    }
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
+        arma::Mat<double> A = matrices[i]; 
+        arma::Mat<double> og_A = A; 
+        std::pair<arma::Mat<double>, arma::Mat<double>> result = full_pivoted_cholesky(A); 
+        // double error = chol_err(A, false); 
+        arma::Mat<double> L = result.first; 
+        arma::Mat<double> Lt = result.second; 
+        arma::Mat<double> reconA = L*Lt;
+
+        arma::Mat<double> diff =og_A -  reconA; 
+        double error = arma::norm(diff, "fro"); 
+        outfile7 << size << "\t" << error << std::endl;
+        
+        
+    }
+    outfile7.close();
+
+
+    std::ofstream outfile8("full_pivoted_cholesky_err_sing.txt"); 
+    if (!outfile8.is_open()) {
+        std::cerr << "File error" << std::endl;
+        return 1;
+    }
+   
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
+        arma::Mat<double> A = almost_singular[i]; 
+        arma::Mat<double> og_A = A; 
+        std::pair<arma::Mat<double>, arma::Mat<double>> result = full_pivoted_cholesky(A); 
+        arma::Mat<double> L = result.first; 
+        arma::Mat<double> Lt = result.second; 
+        arma::Mat<double> reconA = L*Lt;
+        arma::Mat<double> diff =og_A -  reconA; 
+        double error = arma::norm(diff, "fro"); 
+ 
+        outfile8 << size << "\t" << error << std::endl;
+        
+        
+    }
+    outfile8.close();
+
+
+ 
+
 
     return 0; 
 

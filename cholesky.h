@@ -43,8 +43,8 @@ std::pair<arma::Mat<double>, arma::Mat<double>> pivoted_cholesky(arma::Mat<doubl
 std::pair<arma::Mat<double>,arma::Mat<double>> LU_decomp(arma::Mat<double> & A, bool pivot); 
 
 std::pair<arma::Mat<double>,arma::Mat<double>> other_chol(arma::Mat<double>& A, bool pivot); 
-
-
+std::pair<arma::Mat<double>, arma::Mat<double>> full_pivoted_cholesky(arma::Mat<double>& A); 
+std::pair<int,int> find_full_pivot(arma::Mat<double>&A, int start); 
 // void permute_cols(arma::mat & A,int j, int pivot_col);
 // void permute_rows(arma::mat & A,int i, int pivot_row); 
 

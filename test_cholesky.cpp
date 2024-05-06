@@ -144,12 +144,12 @@ int main(void) {
     }
 
 
-    std::cout << "\n\nNew trial chol" << std::endl;
+    std::cout << "\n\nFull pivoted Cholesky" << std::endl;
     arma::Mat<double> A10 = gen_sympd(5);
     make_sympd(A10);
     try {
         A10.print("A");
-        std::pair<arma::Mat<double>, arma::Mat<double>> result3 = other_chol(A10,true);
+        std::pair<arma::Mat<double>, arma::Mat<double>> result3 = full_pivoted_cholesky(A10);
         std::cout <<std::endl;
         
         std::cout << "\n L:"<< std::endl;
@@ -165,6 +165,24 @@ int main(void) {
         std::cerr << e.what() << std::endl;
     }
     
+
+    arma::Mat<double> A11 = gen_singular(5); 
+    std::cout << "\n\n\n Testing nearly singular matrices with full pivoted Chol" <<std::endl;
+    try {
+        A8.print("A");
+        std::pair<arma::Mat<double>, arma::Mat<double>> result4 = full_pivoted_cholesky(A11);  
+        std::cout <<std::endl;
+        std::cout << "\n L:"<< std::endl;
+        result4.first.print(); 
+        std::cout << "\n L.t:"<< std::endl;
+        result4.second.print(); 
+        arma::Mat<double> reconstructedA = result4.first*result4.second; 
+        reconstructedA.print("reconstructed"); 
+    
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
 
 
 
