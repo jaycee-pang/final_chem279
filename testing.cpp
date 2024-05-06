@@ -180,7 +180,9 @@ double LU_timing(arma::Mat<double> & A, bool pivot) {
     auto start = std::chrono::high_resolution_clock::now(); 
     std::pair<arma::Mat<double>, arma::Mat<double>> result = LU_decomp(A, pivot); 
     auto end = std::chrono::high_resolution_clock::now(); 
-    std::chrono::duration<double> duration = end - start;
+    // std::chrono::duration<double> duration = end - start;
+    std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+
     return duration.count();
 
 }
@@ -197,7 +199,9 @@ double arma_timing(arma::Mat<double> & A) {
     auto start = std::chrono::high_resolution_clock::now(); 
     bool success = arma::chol(L,A);
     auto end = std::chrono::high_resolution_clock::now(); 
-    std::chrono::duration<double> duration = end - start;
+    // std::chrono::duration<double> duration = end - start;
+    std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+
     return duration.count();
 
 

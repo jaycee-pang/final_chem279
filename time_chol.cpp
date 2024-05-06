@@ -32,7 +32,9 @@ int main(void) {
         auto start = std::chrono::steady_clock::now();
         std::pair<arma::Mat<double>, arma::Mat<double>> result = pivoted_cholesky(A, false);
         auto end = std::chrono::high_resolution_clock::now(); 
-        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+        // std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+
         double time = duration.count();
         outfile1 << size << "\t" << time << std::endl;
         
@@ -51,7 +53,9 @@ int main(void) {
         auto start = std::chrono::steady_clock::now();
         std::pair<arma::Mat<double>, arma::Mat<double>> result = pivoted_cholesky(A, true);
         auto end = std::chrono::high_resolution_clock::now(); 
-        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+        // std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+
         double time = duration.count();
         outfile2 << size << "\t" << time << std::endl;
         
@@ -71,7 +75,9 @@ int main(void) {
         auto start = std::chrono::high_resolution_clock::now(); 
         bool success = arma::chol(L,A);
         auto end = std::chrono::high_resolution_clock::now(); 
-        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+        // std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+
         double time = duration.count();
         outfile3 << size << "\t" << time << std::endl;
 
@@ -91,7 +97,9 @@ int main(void) {
         auto start = std::chrono::high_resolution_clock::now(); 
         std::pair<arma::Mat<double>, arma::Mat<double>> result = LU_decomp(A,false); 
         auto end = std::chrono::high_resolution_clock::now(); 
-        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+        // std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+
         double time = duration.count();
         outfile4 << size << "\t" << time << std::endl;
         
