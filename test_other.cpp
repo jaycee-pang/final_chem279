@@ -2,67 +2,109 @@
 #include "matgen.h"
 #include "testing.h"
 #include <iostream> 
+// testing 
+
 int main(void) {
-    arma::Mat<double> A = gen_sympd(1000);
-    std::vector<int> mat_sizes = {100,200,500,1000,1500,2000,2500}; 
+    std::vector<int> mat_sizes = {3,4,5}; 
     std::vector<arma::Mat<double>> matrices;
-    std::vector<arma::Mat<double>> sing_matrices; 
+    // so we can test the same matrices for each method/algo.
     for (int size : mat_sizes) {
         matrices.push_back(gen_sympd(size));
-        sing_matrices.push_back(gen_singular(size));
     }
-    std::cout << "Pivoted Cholesky on sympd" << std::endl;
-    for (int i=0; i <mat_sizes.size(); i++) {
+    std::cout << "Cholesky matrix reconstruction error" << std::endl;
+    
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
         arma::Mat<double> A = matrices[i]; 
-        arma::Mat<double> og_A = A; 
-        std::pair<arma::Mat<double> , arma::Mat<double>> result = pivoted_cholesky(A,true);
-        arma::Mat<double> L = result.first; 
-        arma::Mat<double> Lt = result.second;
-        arma::Mat<double> reconA = L*Lt; 
-        double norm = arma::norm(og_A - reconA, "fro");
-        std::cout << "norm: " << norm << std::endl;
-    }
-    std::cout << "Cholesky on sympd" << std::endl;
-    for (int i=0; i <mat_sizes.size(); i++) {
-        arma::Mat<double> A2 = matrices[i]; 
-        arma::Mat<double> og_A2 = A2; 
-        std::pair<arma::Mat<double> , arma::Mat<double>> result2 = pivoted_cholesky(A2,false);
-        arma::Mat<double> L2 = result2.first; 
-        arma::Mat<double> Lt2 = result2.second;
-        arma::Mat<double> reconA2 = L2*Lt2; 
-        double norm2 = arma::norm(og_A2 - reconA2, "fro");
-        std::cout << "norm: " << norm2 << std::endl;
-    }
-    std::cout << "Cholesky with nearly singular matrices" << std::endl;
-    for (int i=0; i <mat_sizes.size(); i++) {
-        arma::Mat<double> A3 = matrices[i]; 
-        arma::Mat<double> og_A3 = A3; 
-        std::pair<arma::Mat<double> , arma::Mat<double>> result3 = pivoted_cholesky(A3,false);
-        arma::Mat<double> L3 = result3.first; 
-        arma::Mat<double> Lt3 = result3.second;
-        arma::Mat<double> reconA3 = L3*Lt3; 
-        double norm3 = arma::norm(og_A3 - reconA3, "fro");
-        std::cout << "norm: " << norm3 << std::endl;
-    }
-    std::cout << "Pivoted Cholesky with nearly singular matrices" << std::endl;
-    for (int i=0; i <mat_sizes.size(); i++) {
-        arma::Mat<double> A4 = matrices[i]; 
-        arma::Mat<double> og_A4 = A4; 
-        std::pair<arma::Mat<double> , arma::Mat<double>> result4 = pivoted_cholesky(A4,true);
-        arma::Mat<double> L4 = result4.first; 
-        arma::Mat<double> Lt4 = result4.second;
-        arma::Mat<double> reconA4 = L4*Lt4; 
-        double norm4 = arma::norm(og_A4 - reconA4, "fro");
-        std::cout << "norm: " << norm4 << std::endl;
+        double error1 = chol_err(A, false); 
+    
+        
+        
     }
 
-    
+    std::cout << "\n\nPivoted Cholesky matrix reconstruction error" << std::endl;
 
     
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
+        arma::Mat<double> A2 = matrices[i];
+        double error2 = chol_err(A2, true); 
+ 
+        
+    }
+
+
+  
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
+        arma::Mat<double> A = matrices[i];
+        arma::Mat<double> L = arma::chol(A); 
+        arma::Mat<double> reconstructedA3 = L*L.t(); 
+        arma::Mat<double> diff3 = A - reconstructedA3; 
+        double error3 = arma::norm(diff3, "fro"); 
+  
+        
+    }
+
+
+
+    std::cout << "\n\nPivoted Cholesky matrix reconstruction error on nearly singular matrices" << std::endl;
+    
+    std::vector<arma::Mat<double>> almost_singular;
+    for (int size : mat_sizes) {
+        almost_singular.push_back(gen_singular(size));
+    }
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
+        arma::Mat<double> A4 = almost_singular[i]; 
+        double error4 = chol_err(A4, true); 
+
+        
+        
+    }
+
+    std::cout << "\n\nFull Pivoted Cholesky matrix reconstruction error" << std::endl;
+    
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
+        arma::Mat<double> A5 = matrices[i]; 
+        // A5.print("A");
+        arma::Mat<double> og_A5 = A5; 
+        std::pair<arma::Mat<double>, arma::Mat<double>> result5 = full_pivoted_cholesky(A5); 
+        // double error = chol_err(A, false); 
+        arma::Mat<double> L5= result5.first; 
+        arma::Mat<double> Lt5 = result5.second; 
+        arma::Mat<double> reconA5 = L5*Lt5;
+        // reconA5.print("reconstructed A"); 
+        arma::Mat<double> diff5 =og_A5 -  reconA5; 
+        double error5 = arma::norm(diff5, "fro"); 
     
 
-    
+        
+    }
+ 
+
+    std::cout << "\n\nPivoted Cholesky matrix reconstruction error on nearly singular matrices" << std::endl;
+   
+    for (int i=0; i<mat_sizes.size(); i++) {
+        int size = mat_sizes[i];
+        arma::Mat<double> A6 = almost_singular[i]; 
+        // A6.print("A"); 
+        arma::Mat<double> og_A6 = A6; 
+        std::pair<arma::Mat<double>, arma::Mat<double>> result6 = full_pivoted_cholesky(A6); 
+        arma::Mat<double> L6 = result6.first; 
+        arma::Mat<double> Lt6 = result6.second; 
+        arma::Mat<double> reconA6 = L6*Lt6;
+        arma::Mat<double> diff6 =og_A6 -  reconA6; 
+        // reconA6.print("reconstructed");
+        double error6 = arma::norm(diff6, "fro"); 
+ 
+        
+    }
+
 
     return 0; 
 
 }
+    
+

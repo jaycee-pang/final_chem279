@@ -4,6 +4,16 @@
 #include "matgen.h"
 #include "testing.h"
 #include <fstream>
+/*
+Solve systems of linear equations and find matrix inverse using Cholesky and pivoted Cholesky. 
+Error is evaluated as the norm of the difference between 
+arma::solve for x and my Cholesky decomposition of matrix A into L and solving for x using forward and 
+backward substituttion. 
+
+Solve for inverse of A using Ltinv and Linv, then evaluate error between arma::inverse and 
+A^-1 using (Lt inverse) *(L inverse). 
+   
+*/
 
 
 int main(void) {
@@ -35,7 +45,7 @@ int main(void) {
         arma::vec x_arma = arma::solve(A_arma, b_arma);
         // double residual_norm = arma::norm(residual);
         // std::cout << "residual norm: " << residual_norm << std::endl;
-        double error_norm = arma::norm(x-x_arma); 
+        double error_norm = arma::norm(x_arma-x); 
        
         outfile1 << size << "\t" << error_norm << std::endl;
         
@@ -63,7 +73,7 @@ int main(void) {
         arma::vec x_arma = arma::solve(A_arma, b_arma);
         // double residual_norm = arma::norm(residual);
         // std::cout << "residual norm: " << residual_norm << std::endl;
-        double error_norm = arma::norm(x-x_arma); 
+        double error_norm = arma::norm(x_arma-x); 
        
         outfile2 << size << "\t" << error_norm << std::endl;
         
@@ -92,7 +102,7 @@ int main(void) {
 
         arma::vec residual = A*x-b;
         arma::vec x_arma = arma::solve(A_arma, b_arma);
-        double error_norm = arma::norm(x-x_arma); 
+        double error_norm = arma::norm(x_arma-x); 
        
         outfile3a << size << "\t" << error_norm << std::endl;
         

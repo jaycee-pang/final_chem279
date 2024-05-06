@@ -3,9 +3,11 @@
 #include "matgen.h"
 #include <exception> 
 
-
+/*
+Initial testing for small matrices for Cholesky, pivoted Cholesky, LU decomposition, LU with pivoting, 
+full pivoted Cholesky, also testing Cholesky with nearly singular matrices. 
+*/
 int main(void) {
-    // arma::mat A = gen_sympd(5);
     arma::Mat<double> A = {
         {4,  12, -16},
         {12, 37, -43},
@@ -34,7 +36,6 @@ int main(void) {
     
     std::cout << "\n\nPivoted Cholesky" << std::endl;
 
-    // arma::mat A2 = {{4,1,-2}, {1,5, 3}, {-2,3,6}};
     arma::Mat<double> A2 = gen_sympd(5);
     // arma::mat A2 = {
     //     {4,  12, -16},
@@ -146,7 +147,6 @@ int main(void) {
 
     std::cout << "\n\nFull pivoted Cholesky" << std::endl;
     arma::Mat<double> A10 = gen_sympd(5);
-    make_sympd(A10);
     try {
         A10.print("A");
         std::pair<arma::Mat<double>, arma::Mat<double>> result3 = full_pivoted_cholesky(A10);

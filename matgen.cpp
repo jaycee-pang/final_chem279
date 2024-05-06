@@ -5,18 +5,14 @@
 #include <cmath> 
 #include <exception>
 #include "matgen.h"
-/*
-.is_trimatu / .is_trimatl	 	check whether matrix is upper/lower triangular
-.is_diagmat	 	check whether matrix is diagonal
-.is_square	 	check whether matrix is square sized
-.is_symmetric	 	check whether matrix is symmetric
-.is_hermitian	 	check whether matrix is hermitian
-.is_sympd	 	check whether matrix is symmetric/hermitian positive definite
-*/
-// arma has symmatu 
-// arma has symmatu / symmatl	 	generate symmetric matrix from given matrix
 
-
+/**
+ * Make a given matrix symmetric. 
+ *
+ * 1/2(A+A.t) 
+ * @param A: arma::mat A
+ * 
+ */
 void make_symmetric(arma::Mat<double> & A) {
     
     A = 0.5*(A+A.t()); // symmetric 
@@ -25,32 +21,55 @@ void make_symmetric(arma::Mat<double> & A) {
     }
 }
 
-void make_sympd(arma::Mat<double>& A) {
-    A = 0.5*(A*A.t()); // smmetric
-    if (!A.is_symmetric() || A.n_rows != A.n_cols)  {
-        throw std::logic_error("Matrix could not be made symmetric"); 
-    }
-    arma::Mat<double> sympd = A*A.t();
-}
 
+/**
+ * Generate a symmetric matrix.
+ *
+ * 1/2(A+A.t) 
+ * @param n: int, size of matrix (square matrix)
+ * @returns symmetric: symmetric matrix of size nxn. 
+ */
 arma::Mat<double> gen_symmetric(int n) {
+    if (n <=0) {
+        throw std::invalid_argument("Invalid matrix size requested.");
+    }
     arma::Mat<double> A = arma::randu(n,n);
     arma::Mat<double> symmetric = arma::symmatu(A); 
     return symmetric; 
 
 }
 
+
+/**
+ * Generate a symmetric positive definite matrix. 
+ *
+ * Average with transpose to make it symmetric, then 
+ * add multiple of identity matrix to ensure all eigenvalues are positive. 
+ * @param n: int, size of matrix (square matrix)
+ * @returns pd: symmetric positive definite matrix of size nxn. 
+ */
 arma::Mat<double> gen_sympd(int n) {
+    if (n <=0) {
+        throw std::invalid_argument("Invalid matrix size requested.");
+    }
     arma::Mat<double> A = arma::randu<arma::mat>(n, n); 
     A = 0.5*(A+A.t());  // symmetric 
-
-    arma::Mat<double> pd = A + n*arma::eye<arma::mat>(n, n); 
+    arma::Mat<double> pd = A + n*arma::eye<arma::mat>(n, n); // p-d
     return pd ;
     
 }
 
-
+/**
+ * Generate a nearly singular matrix.  
+ *
+ * Compute eigenvalues and eigenvecs of A and make them small by multiplying by a small value.  
+ * @param n: int, size of matrix (square matrix)
+ * @returns A: symmetric, nearly singular matrix. 
+ */
 arma::Mat<double> gen_singular(int n) {
+    if (n <=0) {
+        throw std::invalid_argument("Invalid matrix size requested.");
+    }
     arma::Mat<double> A(n,n,arma::fill::randu); 
     A = A*A.t();
     arma::vec eigval; 
@@ -58,4 +77,5 @@ arma::Mat<double> gen_singular(int n) {
     arma::eig_sym(eigval, eigvec, A);  // eigen decomposition to ensure symmetry 
     eigval*=1e-10; 
     return A; 
+   
 }

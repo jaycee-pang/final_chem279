@@ -4,12 +4,18 @@
 #include "matgen.h"
 #include <armadillo> 
 #include "testing.h"
+/*
+Testing error of matrix reconstruction: original A versus L*Lt. 
+Test on increasing matrix size. 
+*/
 int main(void) {
     std::vector<int> mat_sizes = {100,200,500,1000,1500,2000,2500}; 
     std::vector<arma::Mat<double>> matrices;
+    // so we can test the same matrices for each method/algo.
     for (int size : mat_sizes) {
         matrices.push_back(gen_sympd(size));
     }
+    std::cout << "Cholesky matrix reconstruction error" << std::endl;
     std::ofstream outfile1("cholesky_error.txt");
     if (!outfile1.is_open()) {
         std::cerr <<"File error"<<std::endl;
@@ -24,7 +30,7 @@ int main(void) {
         
     }
     outfile1.close();
-
+    std::cout << "Pivoted Cholesky matrix reconstruction error" << std::endl;
     std::ofstream outfile2("pivoted_cholesky_error.txt"); 
     if (!outfile2.is_open()) {
         std::cerr << "File error" << std::endl;
@@ -55,7 +61,7 @@ int main(void) {
         
     }
     outfile3.close();
-
+    std::cout << "LU decomposition matrix reconstruction error" << std::endl;
     std::ofstream outfile4("LU_decomp_error.txt"); 
     if (!outfile4.is_open()) {
         std::cerr << "File error" << std::endl;
@@ -69,7 +75,7 @@ int main(void) {
         
     }
     outfile4.close();
-
+    std::cout << "Pivoted LU matrix reconstruction error" << std::endl;
     std::ofstream outfile5("LU_pivot_decomp_error.txt"); 
     if (!outfile5.is_open()) {
         std::cerr << "File error" << std::endl;
@@ -83,7 +89,7 @@ int main(void) {
         
     }
     outfile5.close();
-
+    std::cout << "Pivoted Cholesky matrix reconstruction error on nearly singular matrices" << std::endl;
     std::ofstream outfile6("pivoted_cholesky_err_sing.txt"); 
     if (!outfile6.is_open()) {
         std::cerr << "File error" << std::endl;
@@ -102,7 +108,7 @@ int main(void) {
         
     }
     outfile6.close();
-
+    std::cout << "Full Pivoted Cholesky matrix reconstruction error" << std::endl;
     std::ofstream outfile7("full_piv_cholesky_error.txt");
     if (!outfile7.is_open()) {
         std::cerr <<"File error"<<std::endl;
@@ -111,6 +117,7 @@ int main(void) {
     for (int i=0; i<mat_sizes.size(); i++) {
         int size = mat_sizes[i];
         arma::Mat<double> A = matrices[i]; 
+  
         arma::Mat<double> og_A = A; 
         std::pair<arma::Mat<double>, arma::Mat<double>> result = full_pivoted_cholesky(A); 
         // double error = chol_err(A, false); 
@@ -120,13 +127,14 @@ int main(void) {
 
         arma::Mat<double> diff =og_A -  reconA; 
         double error = arma::norm(diff, "fro"); 
+    
         outfile7 << size << "\t" << error << std::endl;
         
         
     }
     outfile7.close();
 
-
+    std::cout << "Pivoted Cholesky matrix reconstruction error on nearly singular matrices" << std::endl;
     std::ofstream outfile8("full_pivoted_cholesky_err_sing.txt"); 
     if (!outfile8.is_open()) {
         std::cerr << "File error" << std::endl;

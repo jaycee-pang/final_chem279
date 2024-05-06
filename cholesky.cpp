@@ -1,16 +1,12 @@
-// #include <iostream>
-// #include <cmath> 
-// #include <armadillo> 
-// /*
-// .is_trimatu / .is_trimatl	 	check whether matrix is upper/lower triangular
-// .is_diagmat	 	check whether matrix is diagonal
-// .is_square	 	check whether matrix is square sized
-// .is_symmetric	 	check whether matrix is symmetric
-// .is_hermitian	 	check whether matrix is hermitian
-// .is_sympd	 	check whether matrix is symmetric/hermitian positive definite
-// */
-
 #include "cholesky.h"
+/**
+ * Find the pivot in the column A from the given starting index. 
+ *
+ * Look below the diagonal
+ *
+ * @param A: matrix A (matrix to be decomposed)
+ * @return pivot row: row index of the maximum value to be used as the pivot. 
+ */
 int find_pivot(const arma::Mat<double>& A, int start) {
     int n = A.n_rows;
     int pivot_row = start; 
@@ -34,7 +30,14 @@ int find_pivot(const arma::Mat<double>& A, int start) {
 
 }
 
-
+/**
+ * Cholesky Decomposition of the matrix A
+ *
+ *
+ * @param A: matrix A (matrix to be decomposed)
+ * @param pivot (bool): whether to use pivoting 
+ * @return L, Lt (arma::mats): decomposed L and Ltranspose 
+ */
 std::pair<arma::Mat<double>, arma::Mat<double>> pivoted_cholesky(arma::Mat<double>& A, bool pivot) {
     if (!A.is_symmetric() || !A.is_sympd()) {
         throw std::invalid_argument("Input matrix is not symmetric/positive definite."); 
@@ -114,6 +117,14 @@ std::pair<arma::Mat<double>, arma::Mat<double>> pivoted_cholesky(arma::Mat<doubl
 
 }
 
+/**
+ * Find the pivot in a given submatrix 
+ *
+ *
+ * @param A: matrix A (matrix to be decomposed)
+ * @param start: starting index
+ * @return pivot row and column indicies: look from (start, start) to bottom right (last element) of A for the pivot 
+ */ 
 std::pair<int,int> find_full_pivot(arma::Mat<double>&A, int start) {
     int n = A.n_rows;
     int pivot_row = start; 
@@ -144,6 +155,13 @@ std::pair<int,int> find_full_pivot(arma::Mat<double>&A, int start) {
 }
 
 
+/**
+ * Cholesky Decomposition with full pivoting 
+ *
+ *
+ * @param A: matrix A (matrix to be decomposed)
+ * @return L,Lt: matrix factors after decomposing A
+ */ 
 std::pair<arma::Mat<double>, arma::Mat<double>> full_pivoted_cholesky(arma::Mat<double>& A) {
     if (!A.is_symmetric() || !A.is_sympd()) {
         throw std::invalid_argument("Input matrix is not symmetric/positive definite."); 
@@ -221,8 +239,14 @@ std::pair<arma::Mat<double>, arma::Mat<double>> full_pivoted_cholesky(arma::Mat<
 }
 
 
-
-
+/**
+ * LU Decomposition of the matrix A
+ *
+ *
+ * @param A: matrix A (matrix to be decomposed)
+ * @param pivot (bool): whether to use pivoting 
+ * @return L,U: factors 
+ */ 
 std::pair<arma::Mat<double>, arma::Mat<double>> LU_decomp(arma::Mat<double> & A, bool pivot) {
     int n = A.n_rows;
     arma::Mat<double> L(n,n,arma::fill::eye); 
